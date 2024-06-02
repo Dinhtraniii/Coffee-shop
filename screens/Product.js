@@ -61,7 +61,7 @@ const Products = ({ navigation }) => {
     const handleDelete = (Product) => {
         Alert.alert(
             "Warning",
-            "Are you sure you want to delete this place? This operation cannot be returned",
+            "Are you sure you want to delete this product? This operation cannot be returned",
             [
                 {
                     text: "Cancel",
@@ -75,11 +75,11 @@ const Products = ({ navigation }) => {
                             .doc(Product.id)
                             .delete()
                             .then(() => {
-                                console.log("Bàn đã được xóa thành công!");
+                                console.log("Sản phẩm đã được xóa thành công!");
                                 navigation.navigate("Product");
                             })
                             .catch(error => {
-                                console.error("Lỗi khi xóa Bàn:", error);
+                                console.error("Lỗi khi xóa sản phẩm:", error);
                             });
                     },
                     style: "default"
