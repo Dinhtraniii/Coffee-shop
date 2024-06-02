@@ -45,7 +45,7 @@ const  PlaceCustomer= ({ navigation }) => {
             )}
             <View style={{ flex: 1, marginLeft: 10 }}>
                 <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 5 }}>Bàn: {Place.title}</Text>
-                <Text style={{ fontSize: 20, color: 'red' }}>Price: {Place.price} ₫</Text>
+                <Text style={{ fontSize: 20, color: 'red' }}>Số lượng: {Place.price} người</Text>
                 <View style={{ flexDirection: 'row', marginTop: 10 }}>
                     <TouchableOpacity onPress={() => handleAppointment(Place)} style={{ marginRight: 10 }}>
                         <Text style={{ fontSize: 18, color: 'red', textDecorationLine: 'underline' }}>Đặt Bàn</Text>
