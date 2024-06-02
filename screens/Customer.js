@@ -1,17 +1,20 @@
 import React from "react";
 import { createMaterialBottomTabNavigator } from "@react-navigation/material-bottom-tabs";
-import RouterServiceCustomer from "../routers/RouterServiceCustomer";
+import RouterPlaceCustomer from "../routers/RouterPlaceCustomer";
 import Setting from "./Setting";
 import Appointments from "./Appointments";
 import ProfileCustomer from "./ProfileCustomer";
 import { Image } from "react-native";
 import RouterProductCustomer from "../routers/routerProductCustomer";
-import Carts from "./Carts";
+import CartsCustomer from "./CartsCustomer";
+import AppoinmentCustomer from "./AppoinmentCustomer";
 const Tab = createMaterialBottomTabNavigator();
+import Carts from "./Carts";
 
 const Customer = () => {
   return (
-    <Tab.Navigator>
+    <Tab.Navigator
+    activeColor="#e91e63">
        <Tab.Screen
         name="RouterProductCustomer"
         component={RouterProductCustomer}
@@ -26,8 +29,8 @@ const Customer = () => {
         }}
       />
       <Tab.Screen
-        name="RouterServiceCustomer"
-        component={RouterServiceCustomer}
+        name="RouterPlaceCustomer"
+        component={RouterPlaceCustomer}
         options={{
           title: "Booking",
           tabBarIcon: ({ color }) => (
@@ -40,7 +43,7 @@ const Customer = () => {
       />
       <Tab.Screen
         name="Appointments"
-        component={Appointments}
+        component={AppoinmentCustomer}
         options={{
           tabBarIcon: ({ color }) => (
             <Image
@@ -51,8 +54,8 @@ const Customer = () => {
         }}
       />
       <Tab.Screen
-        name="Cart"
-        component={Carts}
+        name="CartsCustomer"
+        component={CartsCustomer}
         options={{
           tabBarIcon: ({ color }) => (
             <Image

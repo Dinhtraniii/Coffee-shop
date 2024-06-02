@@ -7,7 +7,7 @@ import { Menu, MenuTrigger, MenuOptions, MenuOption } from 'react-native-popup-m
 import { useNavigation } from '@react-navigation/native';
 import moment from 'moment';
 
-const Appointments = () => {
+const AppoinmentCustomer = () => {
     const [appointments, setAppointments] = useState([]);
     const [controller, dispatch] = useMyContextProvider();
     const { userLogin } = controller;
@@ -24,21 +24,24 @@ const Appointments = () => {
     };
 
     useEffect(() => {
-        const unsubscribe = firestore()
-            .collection('Appointments')
-            .onSnapshot(querySnapshot => {
-                const appointmentsData = [];
-                querySnapshot.forEach(documentSnapshot => {
-                    appointmentsData.push({
-                        ...documentSnapshot.data(),
-                        id: documentSnapshot.id,
+        if (userLogin) {
+            const unsubscribe = firestore()
+                .collection('Appointments')
+                .where('email', '==', userLogin.email) // Lọc cuộc hẹn dựa trên userId
+                .onSnapshot(querySnapshot => {
+                    const appointmentsData = [];
+                    querySnapshot.forEach(documentSnapshot => {
+                        appointmentsData.push({
+                            ...documentSnapshot.data(),
+                            id: documentSnapshot.id,
+                        });
                     });
+                    setAppointments(appointmentsData);
                 });
-                setAppointments(appointmentsData);
-            });
 
-        return () => unsubscribe();
-    }, []);
+            return () => unsubscribe();
+        }
+    }, [userLogin]);
 
     const handleDelete = (appointmentItem) => {
         Alert.alert(
@@ -98,7 +101,7 @@ const Appointments = () => {
             <View style={styles.header}>
                 <Text style={styles.headerText}>Appointments</Text>
                 <TouchableOpacity onPress={handleLogout}>
-                    <Image source={require('../assets/exit.png')} style={styles.logoutIcon} />
+                    <Image source={require('../assets/logout.png')} style={styles.logoutIcon} />
                 </TouchableOpacity>
             </View>
             <FlatList
@@ -121,10 +124,10 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: 15,
-        backgroundColor: 'black',
+        backgroundColor: '#99FFFF',
     },
     headerText: {
-        color: 'cyan',
+        color: 'black',
         fontSize: 25,
         fontWeight: 'bold',
     },
@@ -155,4 +158,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Appointments;
+export default AppoinmentCustomer;

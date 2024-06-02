@@ -1,9 +1,9 @@
 import { createStackNavigator } from "@react-navigation/stack";
-import Product from '../screens/Product';
-import AddNewProduct from '../screens/AddNewProduct';
-import ProductDetail from '../screens/ProductDetail';
-import ProductUpdate from "../screens/ProductUpdate";
-import {logout, useMyContextProvider } from "../index";
+import Places from '../screens/Places';
+import AddNewPlace from "../screens/AddNewPlace";
+import PlaceDetail from '../screens/PlaceDetail';
+import PlaceUpdate from "../screens/PlaceUpdate";
+import { logout,useMyContextProvider } from "../index";
 import { Text, IconButton } from "react-native-paper";
 import { Menu, MenuTrigger, MenuOption, MenuOptions } from "react-native-popup-menu";
 import { Alert, Image } from "react-native";
@@ -12,14 +12,13 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import Setting from "../screens/Setting";
 import { useEffect } from "react"
-import { Colors } from "react-native/Libraries/NewAppScreen";
-
 const Stack = createStackNavigator();
 
 
-const RouterProduct = ({ navigation }) => {
+const RouterPlace = ({ navigation }) => {
     const [controller,dispatch] = useMyContextProvider();
     const { userLogin } = controller;
+
     useEffect(()=>{
         if(userLogin==null)
             navigation.navigate("Login")
@@ -28,10 +27,10 @@ const RouterProduct = ({ navigation }) => {
     const handleLogout = () => {
         logout(dispatch);
     };
-    const handleDelete = (Product) => {
+    const handleDelete = (Place) => {
         Alert.alert(
             "Warning",
-            "Are you sure you want to delete this Product? This operation cannot be returned",
+            "Are you sure you want to delete this place? This operation cannot be returned",
             [
                 {
                     text: "Cancel",
@@ -41,15 +40,15 @@ const RouterProduct = ({ navigation }) => {
                     text: "Delete",
                     onPress: () => {
                         firestore()
-                            .collection('Product')
-                            .doc(Product.id)
+                            .collection('Place')
+                            .doc(Place.id)
                             .delete()
                             .then(() => {
-                                console.log("Dịch vụ đã được xóa thành công!");
-                                navigation.navigate("Products");
+                                console.log("Bàn đã được xóa thành công!");
+                                navigation.navigate("Places");
                             })
                             .catch(error => {
-                                console.error("Lỗi khi xóa dịch vụ:", error);
+                                console.error("Lỗi khi xóa bàn", error);
                             });
                     },
                     style: "default"
@@ -59,9 +58,8 @@ const RouterProduct = ({ navigation }) => {
     };
     
     return (
-        
         <Stack.Navigator 
-            initialRouteName="Home"
+            initialRouteName="Places"
             screenOptions={{
                 headerTitleAlign: "left",
                 headerTintColor: "cyan",
@@ -71,39 +69,31 @@ const RouterProduct = ({ navigation }) => {
                     </TouchableOpacity>
                   ),
                   
+                  
             }} 
         > 
             
-            <Stack.Screen options={{headerLeft: null, 
-                                    title: (userLogin != null) && (userLogin.fullName),
-                                    headerStyle: {
-                                        backgroundColor: "hsla(0, 0%, 0%, 1)"
-                                    },
-                                    headerTitleStyle:{
+            <Stack.Screen options={{headerLeft: null, title: (userLogin != null) && (userLogin.fullName),
+             headerStyle: {
+                backgroundColor: "hsla(0, 0%, 0%, 1)"
+            },
+            headerTitleStyle:{
                                          color:'hsla(180, 100%, 50%, 1)'
-                                    }    
-                                }}
-                                    name="Product" component={Product} />
-            
-            <Stack.Screen name="AddNewProduct" component={AddNewProduct} 
+                                    }  }} name="Places" component={Places} />
+            <Stack.Screen  options={{
+                            headerStyle: {
+                                backgroundColor: "hsla(0, 0%, 0%, 1)"
+                            },
+                           
+                        }}
+                            name="AddNewPlace" component={AddNewPlace} /> 
+            <Stack.Screen
                         options={{
                             headerStyle: {
                                 backgroundColor: "hsla(0, 0%, 0%, 1)"
                             },
-                            headerTitleStyle: {
-                                color: "cyan", // Đổi màu của tiêu đề thành màu cyan
-                            },
-                        }}/> 
-           
-            <Stack.Screen name="ProductUpdate" component={ProductUpdate} 
-             options={{
-                headerStyle: {
-                    backgroundColor: "hsla(0, 0%, 0%, 1)"
-                },
-             
-            }}/> 
-             
-            
+                           
+                        }} name="PlaceUpdate" component={PlaceUpdate} /> 
          </Stack.Navigator>
        
     )
@@ -112,4 +102,4 @@ const RouterProduct = ({ navigation }) => {
     
    
 
-export default RouterProduct;
+export default RouterPlace;

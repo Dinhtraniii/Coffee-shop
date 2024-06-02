@@ -6,7 +6,7 @@ import storage from "@react-native-firebase/storage";
 import ImagePicker from "react-native-image-crop-picker";
 import { useMyContextProvider } from "../index";
 
-const AddNewProduct = ({ navigation }) => {
+const AddNewPlace = ({ navigation }) => {
     const [controller, dispatch] = useMyContextProvider();
     const { userLogin } = controller;
     const [imagePath, setImagePath] = useState('');
@@ -14,9 +14,9 @@ const AddNewProduct = ({ navigation }) => {
     const [price, setPrice] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const ProductS = firestore().collection("Product");
+    const PlaceS = firestore().collection("Place");
 
-    const handleAddNewProduct = () => {
+    const handleAddNewPlace = () => {
         if (!title || !price || !imagePath) {
             // Handle validation error
             return;
@@ -24,27 +24,27 @@ const AddNewProduct = ({ navigation }) => {
     
         setLoading(true);
     
-        // Kiểm tra xem Product name đã tồn tại hay chưa
-        ProductS.where('title', '==', title.trim()).get()
+        // Kiểm tra xem Place name đã tồn tại hay chưa
+        PlaceS.where('title', '==', title.trim()).get()
         .then(querySnapshot => {
             if (!querySnapshot.empty) {
-                // Nếu Product name đã tồn tại, hiển thị thông báo và không thêm Product mới
-                Alert.alert('Error', 'Product name already exists.');
+                // Nếu Place name đã tồn tại, hiển thị thông báo và không thêm Place mới
+                Alert.alert('Error', 'Place name already exists.');
                 setLoading(false);
             } else {
-                // Nếu Product name chưa tồn tại, thực hiện thêm Product mới vào cơ sở dữ liệu
-                ProductS.add({
+                // Nếu Place name chưa tồn tại, thực hiện thêm Place mới vào cơ sở dữ liệu
+                PlaceS.add({
                     title,
                     price,
                     create: userLogin.email
                 })
                 .then(response => {
-                    const refImage = storage().ref("/Products/" + response.id + ".png");
+                    const refImage = storage().ref("/Places/" + response.id + ".png");
                     refImage.putFile(imagePath)
                     .then(() => {
                         refImage.getDownloadURL()
                         .then(link => {
-                            ProductS.doc(response.id).update({
+                            PlaceS.doc(response.id).update({
                                 id: response.id, 
                                 image: link
                             })
@@ -53,11 +53,11 @@ const AddNewProduct = ({ navigation }) => {
                                 setImagePath('');
                                 setTitle('');
                                 setPrice('');
-                                navigation.navigate("Product");
+                                navigation.navigate("Places");
                             })
                             .catch(error => {
                                 setLoading(false);
-                                console.log("Error updating Product:", error);
+                                console.log("Error updating Place:", error);
                             });
                         })
                         .catch(error => {
@@ -72,13 +72,13 @@ const AddNewProduct = ({ navigation }) => {
                 })
                 .catch(error => {
                     setLoading(false);
-                    console.log("Error adding Product:", error);
+                    console.log("Error adding Place:", error);
                 });
             }
         })
         .catch(error => {
             setLoading(false);
-            console.log("Error checking Product name:", error);
+            console.log("Error checking Place name:", error);
         });
     }
         
@@ -98,9 +98,9 @@ const AddNewProduct = ({ navigation }) => {
         <ScrollView contentContainerStyle={styles.container}>
             <Card elevation={5} style={styles.card}>
                 <Card.Content>
-                    <Title style={styles.title}>Add New Product</Title>
+                    <Title style={styles.title}>Add New Place</Title>
                     <TextInput
-                        label="Product name"
+                        label="Place name"
                         value={title}
                         onChangeText={setTitle}
                         style={styles.input}
@@ -108,7 +108,7 @@ const AddNewProduct = ({ navigation }) => {
                     <View style={styles.imageContainer}>
                         {imagePath !== "" ?
                             <Avatar.Image size={150} source={{ uri: imagePath }} style={styles.image} /> :
-                            <Avatar.Icon size={150} icon="image-plus" style={styles.imageProductholder} />
+                            <Avatar.Icon size={150} icon="image-plus" style={styles.imagePlaceholder} />
                         }
                         <IconButton
                             icon="camera"
@@ -118,7 +118,7 @@ const AddNewProduct = ({ navigation }) => {
                         />
                     </View>
                     <TextInput
-                        label="Price"
+                        label="Place"
                         value={price}
                         onChangeText={setPrice}
                         keyboardType="numeric"
@@ -126,11 +126,11 @@ const AddNewProduct = ({ navigation }) => {
                     />
                     <Button
                         mode="contained"
-                        onPress={handleAddNewProduct}
+                        onPress={handleAddNewPlace}
                         style={styles.addButton}
                         disabled={!title || !price || !imagePath || loading}
                     >
-                        {loading ? <ActivityIndicator color="white" /> : "Add Product"}
+                        {loading ? <ActivityIndicator color="white" /> : "Add Place"}
                     </Button>
                 </Card.Content>
             </Card>
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     image: {
         marginBottom: 10,
     },
-    imageProductholder: {
+    imagePlaceholder: {
         marginBottom: 10,
         backgroundColor: '#f2f2f2',
     },
@@ -175,4 +175,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default AddNewProduct;
+export default AddNewPlace;

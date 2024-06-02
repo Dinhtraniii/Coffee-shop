@@ -1,123 +1,153 @@
-// Cart.js
 import React, { useState } from "react";
-import { View, Image } from "react-native";
+import { View, Image, Alert, StyleSheet } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import { Button, Text } from "react-native-paper";
-import DatePicker from "react-native-date-picker";
+import { Button, Text, Card } from "react-native-paper";
 import firestore from "@react-native-firebase/firestore";
-import { useMyContextProvider } from "../index"; // Adjust the path as needed
-import AddressSelection from './AddressSelection'; // Adjust the path as needed
-import PaymentMethodSelection from './PaymentMethodSelection'; // Adjust the path as needed
+import { useMyContextProvider } from "../index";
+import AddressSelection from './AddressSelection'; // Điều chỉnh đường dẫn cần thiết
+import PaymentMethodSelection from './PaymentMethodSelection'; // Điều chỉnh đường dẫn cần thiết
 
 const Cart = ({ navigation, route }) => {
-  const { Product } = route.params || {};
-  const [datetime, setDatetime] = useState(new Date());
-  const [openDatePicker, setOpenDatePicker] = useState(false);
-  const [openAddressModal, setOpenAddressModal] = useState(false);
-  const [openPaymentModal, setOpenPaymentModal] = useState(false);
-  const [selectedAddress, setSelectedAddress] = useState('');
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
-  const [controller, dispatch] = useMyContextProvider();
-  const { userLogin } = controller;
-  const CARTs = firestore().collection("Carts");
+    const { Product } = route.params || {};
+    const [controller] = useMyContextProvider();
+    const { userLogin } = controller;
+    const [openAddressModal, setOpenAddressModal] = useState(false);
+    const [openPaymentModal, setOpenPaymentModal] = useState(false);
+    const [selectedAddress, setSelectedAddress] = useState('');
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
+    const CARTs = firestore().collection("Carts");
 
-  const handleSelectAddress = (address) => {
-    setSelectedAddress(address);
-  };
+    const handleSelectAddress = (address) => {
+        setSelectedAddress(address);
+    };
 
-  const handleSelectPaymentMethod = (method) => {
-    setSelectedPaymentMethod(method);
-  };
+    const handleSelectPaymentMethod = (method) => {
+        setSelectedPaymentMethod(method);
+    };
 
-  const handleSubmit = () => {
-    if (!selectedAddress) {
-      alert('Please select a shipping address');
-      return;
-    }
-    if (!selectedPaymentMethod) {
-      alert('Please select a payment method');
-      return;
-    }
+    const handleSubmit = () => {
+        if (!selectedAddress || !selectedPaymentMethod) {
+            Alert.alert('Error', 'Please select a shipping address and payment method');
+            return;
+        }
 
-    CARTs.add({
-      email: userLogin.email,
-      ProductId: Product.id,
-      datetime,
-      address: selectedAddress,
-      paymentMethod: selectedPaymentMethod,
-      state: "new"
-    })
-      .then(r => {
-        CARTs.doc(r.id).update({ id: r.id });
-        navigation.navigate("Carts");
-      });
-  };
+        CARTs.add({
+            email: userLogin.email,
+            ProductId: Product.id,
+            address: selectedAddress,
+            paymentMethod: selectedPaymentMethod,
+            state: "new"
+        })
+        .then(response => {
+            CARTs.doc(response.id).update({ id: response.id })
+            .then(() => {
+                navigation.navigate("CartsCustomer");
+            });
+        })
+        .catch(error => {
+            console.error("Error adding to cart: ", error);
+            Alert.alert('Error', 'Failed to add to cart');
+        });
+    };
 
-  return (
-    <View style={{ padding: 10 }}>
-      {Product && Product.image !== "" && (
-        <View style={{ flexDirection: 'row' }}>
-          <Image
-            source={{ uri: Product && Product.image }}
-            style={{ height: 300, width: '100%' }}
-            resizeMode="contain"
-          />
+    return (
+        <View style={styles.container}>
+            <Card style={styles.card}>
+                <Card.Content>
+                    <Image
+                        source={{ uri: Product.image }}
+                        style={styles.image}
+                        resizeMode="contain"
+                    />
+                    <Text style={styles.productTitle}>{Product.title}</Text>
+                    <Text style={styles.productPrice}>{Product.price} ₫</Text>
+                </Card.Content>
+            </Card>
+
+            <TouchableOpacity
+                onPress={() => setOpenAddressModal(true)}
+                style={styles.selectionContainer}>
+                <Text style={styles.selectionTitle}>Shipping Address:</Text>
+                <Text style={styles.selectionText}>{selectedAddress || 'Select address'}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                onPress={() => setOpenPaymentModal(true)}
+                style={styles.selectionContainer}>
+                <Text style={styles.selectionTitle}>Payment Method:</Text>
+                <Text style={styles.selectionText}>{selectedPaymentMethod || 'Select method'}</Text>
+            </TouchableOpacity>
+
+            <AddressSelection
+                isVisible={openAddressModal}
+                onClose={() => setOpenAddressModal(false)}
+                onSelectAddress={handleSelectAddress}
+            />
+
+            <PaymentMethodSelection
+                isVisible={openPaymentModal}
+                onClose={() => setOpenPaymentModal(false)}
+                onSelectMethod={handleSelectPaymentMethod}
+            />
+
+            <Button
+                style={styles.button}
+                textColor="white"
+                buttonColor="tomato"
+                mode="contained"
+                onPress={handleSubmit}>
+                Checkout
+            </Button>
         </View>
-      )}
-      <View style={{ flexDirection: 'row' }}>
-        <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Tên món: </Text>
-        <Text style={{ fontSize: 20, fontStyle: 'italic', fontWeight: '100' }}>{Product && Product.title}</Text>
-      </View>
-      <View style={{ flexDirection: 'row' }}>
-        <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Giá: </Text>
-        <Text style={{ fontSize: 20, color: 'red' }}>{Product && Product.price} ₫</Text>
-      </View>
-      <DatePicker
-        modal
-        open={openDatePicker}
-        date={datetime}
-        onConfirm={(date) => {
-          setOpenDatePicker(false);
-          setDatetime(date);
-        }}
-        onCancel={() => {
-          setOpenDatePicker(false);
-        }}
-      />
-      <TouchableOpacity
-        onPress={() => setOpenDatePicker(true)}
-        style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Choose date time: </Text>
-        <Text style={{ fontSize: 20 }}>{datetime.toDateString()}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => setOpenAddressModal(true)}
-        style={{ flexDirection: "row", justifyContent: "space-between", marginVertical: 10 }}>
-        <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Shipping Address: </Text>
-        <Text style={{ fontSize: 20 }}>{selectedAddress || 'Select address'}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => setOpenPaymentModal(true)}
-        style={{ flexDirection: "row", justifyContent: "space-between", marginVertical: 10 }}>
-        <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Payment Method: </Text>
-        <Text style={{ fontSize: 20 }}>{selectedPaymentMethod || 'Select method'}</Text>
-      </TouchableOpacity>
-    
-      <AddressSelection
-        isVisible={openAddressModal}
-        onClose={() => setOpenAddressModal(false)}
-        onSelectAddress={handleSelectAddress}
-      />
-      <PaymentMethodSelection
-        onSelectMethod={handleSelectPaymentMethod}
-        isVisible={openPaymentModal}
-        onClose={() => setOpenPaymentModal(false)}
-      />
-        <Button style={{ margin: 10 }} textColor="black" buttonColor="red" mode="contained" onPress={handleSubmit}>
-        Thanh toán
-      </Button>
-    </View>
-  );
+    );
 };
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        padding: 20,
+        backgroundColor: '#fff',
+    },
+    card: {
+        marginBottom: 25,
+    },
+    image: {
+        height: 200,
+        width: '100%',
+        marginBottom: 10,
+    },
+    productTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 5,
+        color: '#333',
+    },
+    productPrice: {
+        fontSize: 16,
+        marginBottom: 10,
+        color: 'red',
+    },
+    selectionContainer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginVertical: 10,
+        padding: 10,
+        backgroundColor: "#f1f1f1",
+        borderRadius: 8,
+    },
+    selectionTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    selectionText: {
+        fontSize: 16,
+        color: "#555",
+    },
+    button: {
+        marginTop: 30,
+    },
+});
 
 export default Cart;

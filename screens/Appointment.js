@@ -1,124 +1,152 @@
-import React, { useState } from "react"
-import { View, Image } from "react-native"
-import { TouchableOpacity } from "react-native-gesture-handler"
-import { Button, Text } from "react-native-paper"
-import datetime from "react-native-date-picker"
-import DatePicker from "react-native-date-picker"
-import firestore from "@react-native-firebase/firestore"
-import { useMyContextProvider } from "../index"
-import AddressSelection from './AddressSelection'; // Adjust the path as needed
-import PaymentMethodSelection from './PaymentMethodSelection'; // Adjust the path as needed
+import React, { useState } from "react";
+import { View, Image, TouchableOpacity, Alert, StyleSheet } from "react-native";
+import { Button, Text, Card } from "react-native-paper";
+import DatePicker from "react-native-date-picker";
+import firestore from "@react-native-firebase/firestore";
+import { useMyContextProvider } from "../index";
+import PaymentMethodSelection from './PaymentMethodSelection';
 
-const Appointment = ({navigation, route }) => {
-    const { service } = route.params || {};
-    const [datetime, setDatetime] = useState(new Date())
-    const [open, setOpen] = useState(false)
-    const [controller, dispatch] = useMyContextProvider()
-    const {userLogin} = controller
-    const [openAddressModal, setOpenAddressModal] = useState(false);
+const Appointment = ({ navigation, route }) => {
+    const { Place } = route.params || {};
+    const [datetime, setDatetime] = useState(new Date());
+    const [open, setOpen] = useState(false);
+    const [controller] = useMyContextProvider();
+    const { userLogin } = controller;
     const [openPaymentModal, setOpenPaymentModal] = useState(false);
-    const [selectedAddress, setSelectedAddress] = useState('');
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
-    const APPOINTMENTs = firestore().collection("Appointments")
+    const APPOINTMENTS = firestore().collection("Appointments");
 
-    const handleSelectAddress = (address) => {
-        setSelectedAddress(address);
-      };
-    
-      const handleSelectPaymentMethod = (method) => {
+    const handleSelectPaymentMethod = (method) => {
         setSelectedPaymentMethod(method);
-      };
-    const handleSubmit = () =>{
-        if (!selectedAddress) {
-            alert('Please select a shipping address');
+    };
+
+    const handleSubmit = () => {
+        // Kiểm tra xem đã chọn phương thức thanh toán chưa
+        if (!selectedPaymentMethod) {
+            Alert.alert('Error', 'Please select a payment method');
             return;
-          }
-          if (!selectedPaymentMethod) {
-            alert('Please select a payment method');
-            return;
-          }
-        APPOINTMENTs.add({
+        }
+        
+        // Tiến hành kiểm tra và xác nhận đặt bàn
+        confirmAppointment();
+    };
+
+    const confirmAppointment = () => {
+        // Thêm bản ghi mới vào cơ sở dữ liệu
+        APPOINTMENTS.add({
+            title: Place.title,
             email: userLogin.email,
-            serviceId: service.id,
+            PlaceId: Place.id,
             datetime,
-            address: selectedAddress,
             paymentMethod: selectedPaymentMethod,
             state: "new"
-        })
-        .then(r => 
-            {
-                APPOINTMENTs.doc(r.id).update({id: r.id})
-                navigation.navigate("Appointments")
-            })
-    }
+        }).then(response => {
+            APPOINTMENTS.doc(response.id).update({ id: response.id });
+            // navigation.navigate("AppointmentCustomer");
+        }).catch(error => {
+            console.error("Error adding appointment:", error);
+            Alert.alert('Error', 'Failed to add appointment');
+        });
+    };
+
     return (
-        <View style={{padding: 10}}>
-            {service && service.image !== "" && (
-                <View style={{ flexDirection: 'row' }}>
+        <View style={styles.container}>
+            <Card style={styles.card}>
+                <Card.Cover source={{ uri: Place.image }} />
+                <Card.Content>
+                    <Text style={styles.title}>View: {Place.title}</Text>
+                    <Text style={styles.price}>Place: {Place.price} ₫</Text>
+                </Card.Content>
+            </Card>
 
-                    <Image
-                        source={{ uri: service && service.image }}
-                        style={{ height: 300, width: '100%' }}
-                        resizeMode="contain"
-                    />
-                </View>
-            )}
-            <View style={{ flexDirection: 'row' }}>
-                <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Bàn: </Text>
-                <Text style={{ fontSize: 20 }}>{service && service.title}</Text>
-            </View>
+            <TouchableOpacity
+                onPress={() => setOpen(true)}
+                style={styles.datetimeContainer}
+            >
+                <Text style={styles.label}>Choose date time:</Text>
+                <Text style={styles.datetime}>{datetime.toDateString()}</Text>
+            </TouchableOpacity>
 
-            <View style={{ flexDirection: 'row' }}>
-                <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Giá: </Text>
-                <Text style={{ fontSize: 20,color:'red'}}>{service && service.price} ₫</Text>
-            </View>
-            
+            <TouchableOpacity
+                onPress={() => setOpenPaymentModal(true)}
+                style={styles.paymentContainer}
+            >
+                <Text style={styles.label}>Payment Method:</Text>
+                <Text style={styles.paymentMethod}>{selectedPaymentMethod || 'Select method'}</Text>
+            </TouchableOpacity>
+
+            <PaymentMethodSelection
+                onSelectMethod={handleSelectPaymentMethod}
+                isVisible={openPaymentModal}
+                onClose={() => setOpenPaymentModal(false)}
+            />
+
+            <Button
+                style={styles.button}
+                textColor="black"
+                buttonColor="tomato"
+                mode="contained"
+                onPress={handleSubmit}
+            >
+                Đặt bàn
+            </Button>
+
             <DatePicker
                 modal
                 open={open}
                 date={datetime}
                 onConfirm={(date) => {
-                    setOpen(false)
-                    setDatetime(date)
+                    setOpen(false);
+                    setDatetime(date);
                 }}
-                onCancel={()=>{
-                    setOpen(false)
-                }}
+                onCancel={() => setOpen(false)}
             />
-            <TouchableOpacity
-                onPress={()=> setOpen(true)}            
-                style={{flexDirection:"row", justifyContent: "space-between"}}>
-                <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Choose date time: </Text>
-                <Text style={{ fontSize: 20}}>{datetime.toDateString()}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-        onPress={() => setOpenAddressModal(true)}
-        style={{ flexDirection: "row", justifyContent: "space-between", marginVertical: 10 }}>
-        <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Shipping Address: </Text>
-        <Text style={{ fontSize: 20 }}>{selectedAddress || 'Select address'}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => setOpenPaymentModal(true)}
-        style={{ flexDirection: "row", justifyContent: "space-between", marginVertical: 10 }}>
-        <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Payment Method: </Text>
-        <Text style={{ fontSize: 20 }}>{selectedPaymentMethod || 'Select method'}</Text>
-      </TouchableOpacity>
-    
-      <AddressSelection
-        isVisible={openAddressModal}
-        onClose={() => setOpenAddressModal(false)}
-        onSelectAddress={handleSelectAddress}
-      />
-      <PaymentMethodSelection
-        onSelectMethod={handleSelectPaymentMethod}
-        isVisible={openPaymentModal}
-        onClose={() => setOpenPaymentModal(false)}
-      />
-            <Button style={{margin: 10}} textColor="black" buttonColor="pink" mode="contained" onPress={handleSubmit}>  
-                Đặt lịch
-            </Button>
         </View>
-    )
-}
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        padding: 10,
+        backgroundColor: '#fff',
+    },
+    card: {
+        marginBottom: 20,
+    },
+    title: {
+        fontSize: 20,
+        fontWeight: 'bold',
+    },
+    price: {
+        fontSize: 18,
+        color: 'red',
+    },
+    datetimeContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    paymentContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    label: {
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    datetime: {
+        fontSize: 18,
+    },
+    paymentMethod: {
+        fontSize: 18,
+    },
+    button: {
+        marginTop: 20,
+    },
+});
 
 export default Appointment;

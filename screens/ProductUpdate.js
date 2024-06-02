@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Image } from 'react-native'
+import { View, Image,ScrollView } from 'react-native'
 import {Text, TextInput, Button } from "react-native-paper";
 import firestore from '@react-native-firebase/firestore';
 import storage from "@react-native-firebase/storage";
@@ -51,6 +51,7 @@ const ProductUpdate = ({ route, navigation }) => {
     }
 
     return (
+        <ScrollView style={{ flex: 1, backgroundColor: 'white' }}>
         <View style={{ padding: 10 }}>
             {((imagePath !== "") &&
             <Image source={{uri: imagePath}}
@@ -75,6 +76,7 @@ const ProductUpdate = ({ route, navigation }) => {
             />
             <Button buttonColor="#33CCFF" textColor="black" mode="contained" onPress={handleUpdateProduct}>Update</Button>
         </View>
+        </ScrollView>
     );
 }
 

@@ -28,7 +28,7 @@ const reducer = (state, action) => {
 const MyContextControllerProvider = ({ children }) => {
     const initialState = {
         userLogin: null,
-        services: [],
+        product: [],
     };
     const [controller, dispatch] = useReducer(reducer, initialState);
     const value = useMemo(() => [controller, dispatch], [controller]);
@@ -74,19 +74,45 @@ const createAccount = (email, password, fullName, phone, address, role) => {
 };
 
 const login = (dispatch, email, password) => {
-    auth().signInWithEmailAndPassword(email, password)
-    .then(response => {
-        const unsubscribe = USERS.doc(email).onSnapshot(u => 
-            {
-                dispatch({ type: "USER_LOGIN", value: u.data()});
-                Alert.alert("Đăng nhập thành công với email là: " + u.id);
-                unsubscribe();
-            })
+    auth()
+      .signInWithEmailAndPassword(email, password)
+      .then(response => {
+        const unsubscribe = USERS.doc(email).onSnapshot(u => {
+          dispatch({ type: "USER_LOGIN", value: u.data() });
+          showSuccessAlert(u.id);
+          unsubscribe();
+        });
+      })
+      .catch(e => showErrorAlert());
+  };
+  const showSuccessAlert = (email) => {
+    Alert.alert(
+      "Đăng nhập thành công",
+      `Đăng nhập thành công với email là: ${email}`,
+      [
+        {
+          text: "OK",
+          onPress: () => console.log("OK Pressed"),
+          style: "default"
         }
-    )
-    .catch(e => Alert.alert("Email hoặc mật khẩu không chính xác"));
-};
-
+      ],
+      { cancelable: false }
+    );
+  };
+  const showErrorAlert = () => {
+    Alert.alert(
+      "Lỗi",
+      "Email hoặc mật khẩu không chính xác",
+      [
+        {
+          text: "OK",
+          onPress: () => console.log("OK Pressed"),
+          style: "default"
+        }
+      ],
+      { cancelable: false }
+    );
+  };
 
 const logout = (dispatch) => {
     auth().signOut()

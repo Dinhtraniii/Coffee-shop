@@ -2,8 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Image, View, TouchableOpacity,ImageBackground } from 'react-native';
 import { TextInput, Button, Text, HelperText } from 'react-native-paper';
 import { useMyContextProvider, login } from '../index';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import Header from '../components/Header';
 
 const Login = ({ navigation }) => {
   const [email, setEmail] = useState('');

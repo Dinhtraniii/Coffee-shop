@@ -2,13 +2,16 @@ import React, { useState, useEffect } from "react";
 import { View, FlatList, TouchableOpacity, Alert, StatusBar, StyleSheet, Image } from "react-native";
 import { Text } from "react-native-paper";
 import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 import { logout, useMyContextProvider } from "../index";
 import { Menu, MenuTrigger, MenuOptions, MenuOption } from 'react-native-popup-menu';
 
-const Carts = ({ navigation }) => {
+const CartCustomer = ({ navigation }) => {
     const [carts, setCarts] = useState([]);
     const [controller, dispatch] = useMyContextProvider();
     const { userLogin } = controller;
+    const user = auth().currentUser;
+    const userEmail = user ? user.email : null;
 
     useEffect(() => {
         if (userLogin == null) {
@@ -23,6 +26,7 @@ const Carts = ({ navigation }) => {
     useEffect(() => {
         const unsubscribe = firestore()
             .collection('Carts')
+            .where('email', '==', userEmail) // Make sure userEmail is defined and not null
             .onSnapshot(querySnapshot => {
                 const cartsData = [];
                 querySnapshot.forEach(documentSnapshot => {
@@ -31,71 +35,50 @@ const Carts = ({ navigation }) => {
                         id: documentSnapshot.id,
                     });
                 });
-                // Sắp xếp mảng cartsData dựa trên số đơn hàng
+    
+                // Sort cartsData by order number
                 cartsData.sort((a, b) => a.orderNumber - b.orderNumber);
                 setCarts(cartsData);
             });
-
+    
         return () => unsubscribe();
-    }, []);
-
- 
+    }, [userEmail]);
 
     const handleDelete = (cartItem) => {
-      Alert.alert(
-          "Warning",
-          "Are you sure you want to delete this product? This operation cannot be undone.",
-          [
-              {
-                  text: "Cancel",
-                  style: "cancel"
-              },
-              {
-                  text: "Delete",
-                  onPress: () => {
-                      firestore()
-                          .collection('Carts')
-                          .doc(cartItem.id)
-                          .delete()
-                          .then(() => {
-                              console.log("Deleted successfully!");
-                              // Sau khi xoá, cập nhật lại số đơn hàng và sắp xếp lại danh sách
-                              updateOrderNumbers();
-                          })
-                          .catch(error => {
-                              console.error("Error:", error);
-                          });
-                  },
-                  style: "default"
-              }
-          ]
-      );
-  };
-  const updateOrderNumbers = (deletedItemId) => {
-    // Lấy danh sách đơn hàng
-    const updatedCarts = [...carts];
+        Alert.alert(
+            "Warning",
+            "Are you sure you want to delete this product? This operation cannot be undone.",
+            [
+                {
+                    text: "Cancel",
+                    style: "cancel"
+                },
+                {
+                    text: "Delete",
+                    onPress: () => {
+                        firestore()
+                            .collection('Carts')
+                            .doc(cartItem.id)
+                            .delete()
+                            .then(() => {
+                                console.log("Deleted successfully!");
+                            })
+                            .catch(error => {
+                                console.error("Error:", error);
+                            });
+                    },
+                    style: "default"
+                }
+            ]
+        );
+    };
 
-    // Xóa đơn hàng và cập nhật lại số đơn hàng cho các đơn hàng còn lại
-    const index = updatedCarts.findIndex(item => item.id === deletedItemId);
-    updatedCarts.splice(index, 1);
-    updatedCarts.forEach((item, index) => {
-        item.orderNumber = index + 1;
-    });
-
-    // Cập nhật lại state với danh sách đơn hàng mới
-    setCarts(updatedCarts);
-};
-
-const renderItem = ({ item }) => (
-    <TouchableOpacity >
+    const renderCartItem = ({ item }) => (
         <View style={styles.cartItem}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 20 }}>
-                <View>
-                    <Text style={styles.cartTitle}>{`Order ${item.orderNumber}: ${item.title}`}</Text>
-                    <Text>{`Email: ${item.email}`}</Text>
-                    <Text>{`Price: ${item.price}`}</Text>
-                   
-                </View>
+                <TouchableOpacity  onPress={() => handleCartPress(item)}>
+                    <Text style={styles.cartTitle}>{`Order ${item.orderNumber} : ${item.title}`}</Text>
+                </TouchableOpacity>
                 <Menu>
                     <MenuTrigger>
                         <Image source={require('../assets/dots.png')} style={styles.menuIcon} />
@@ -108,21 +91,22 @@ const renderItem = ({ item }) => (
                 </Menu>
             </View>
         </View>
-    </TouchableOpacity>
-);
-
+    );
+        const handleCartPress = (item) => {
+                navigation.navigate("Cart", { Product: item });
+            };
     return (
         <View style={styles.container}>
             <StatusBar />
             <View style={styles.header}>
-                <Text style={styles.headerText}>Carts</Text>
+                <Text style={styles.headerText}>Your Orders</Text>
                 <TouchableOpacity onPress={handleLogout}>
-                    <Image source={require('../assets/exit.png')} style={styles.logoutIcon} />
+                    <Image source={require('../assets/logout.png')} style={styles.logoutIcon} />
                 </TouchableOpacity>
             </View>
             <FlatList
                 data={carts}
-                renderItem={renderItem}
+                renderItem={renderCartItem}
                 keyExtractor={item => item.id}
             />
         </View>
@@ -139,10 +123,10 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: 15,
-        backgroundColor: 'black',
+        backgroundColor: '#99FFFF',
     },
     headerText: {
-        color: 'cyan',
+        color: 'black',
         fontSize: 25,
         fontWeight: 'bold',
     },
@@ -178,4 +162,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Carts;
+export default CartCustomer;

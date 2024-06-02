@@ -2,27 +2,27 @@ import React from "react"
 import { View, Image } from "react-native"
 import { Text } from "react-native-paper"
 
-const ServiceDetail = ({ route }) => {
-    const { service } = route.params
+const PlaceDetail = ({ route }) => {
+    const { Place } = route.params
     return (
         <View style={{padding: 10}}>
             <View style={{ flexDirection: 'row' }}>
-                <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Service name: </Text>
-                <Text style={{ fontSize: 20}}>{service.title}</Text>
+                <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Place name: </Text>
+                <Text style={{ fontSize: 20}}>{Place.title}</Text>
             </View>
             <View style={{ flexDirection: 'row' }}>
                 <Text style={{ fontSize: 20, fontWeight: 'bold' }}>CreateBy: </Text>
-                <Text style={{ fontSize: 20}}>{service.create}</Text>
+                <Text style={{ fontSize: 20}}>{Place.create}</Text>
             </View>
             <View style={{ flexDirection: 'row' }}>
                 <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Price: </Text>
-                <Text style={{ fontSize: 20}}>{service.price} ₫</Text>
+                <Text style={{ fontSize: 20}}>{Place.price} ₫</Text>
             </View>
-            {service.image !== "" && (
+            {Place.image !== "" && (
                 <View style={{ flexDirection: 'row' }}>
                     <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Image: </Text>
                     <Image
-                        source={{ uri: service.image }}
+                        source={{ uri: Place.image }}
                         style={{ height: 300, width: '100%' }}
                         resizeMode="contain"
                     />
@@ -32,4 +32,4 @@ const ServiceDetail = ({ route }) => {
     )
 }
 
-export default ServiceDetail;
+export default PlaceDetail;

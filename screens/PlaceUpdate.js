@@ -5,28 +5,28 @@ import firestore from '@react-native-firebase/firestore';
 import storage from "@react-native-firebase/storage";
 import ImagePicker from "react-native-image-crop-picker";
 
-const ServiceUpdate = ({ route, navigation }) => {
-    const { service } = route.params;
-    const [title, setTitle] = useState(service.title);
-    const [price, setPrice] = useState(service.price);
-    const [imagePath, setImagePath] = useState(service.image);
+const PlaceUpdate = ({ route, navigation }) => {
+    const { Place } = route.params;
+    const [title, setTitle] = useState(Place.title);
+    const [price, setPrice] = useState(Place.price);
+    const [imagePath, setImagePath] = useState(Place.image);
 
-    const handleUpdateService = async () => {
+    const handleUpdatePlace = async () => {
         try {
             await firestore()
-                .collection('Service')
-                .doc(service.id)
+                .collection('Place')
+                .doc(Place.id)
                 .update({
                     title: title,
                     price: price
                 });
-            if (imagePath !== service.image) {
-                const refImage = storage().ref(`/services/${service.id}.png`);
+            if (imagePath !== Place.image) {
+                const refImage = storage().ref(`/Places/${Place.id}.png`);
                 await refImage.putFile(imagePath);
                 const imageLink = await refImage.getDownloadURL();
                 await firestore()
-                    .collection('Service')
-                    .doc(service.id)
+                    .collection('Place')
+                    .doc(Place.id)
                     .update({
                         image: imageLink
                     });
@@ -57,15 +57,15 @@ const ServiceUpdate = ({ route, navigation }) => {
                 style={{height: 300}}
             />
             )}
-            <Button style={{margin: 20}} buttonColor="pink" textColor="black" mode="contained" onPress={handleUploadImage}>Change Image</Button>
-            <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Service name *</Text>
+            <Button style={{margin: 20}} buttonColor="#33CCFF" textColor="black" mode="contained" onPress={handleUploadImage}>Change Image</Button>
+            <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Place name *</Text>
             <TextInput
                 style={{ marginBottom: 10, borderWidth: 1, borderColor: '#ccc', padding: 5 }}
                 value={title}
                 onChangeText={setTitle}
-                placeholder="Input a service name"
+                placeholder="Input a place name"
             />
-            <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Price *</Text>
+            <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Place *</Text>
             <TextInput
                 style={{ marginBottom: 10, borderWidth: 1, borderColor: '#ccc', padding: 5 }}
                 value={price}
@@ -73,9 +73,9 @@ const ServiceUpdate = ({ route, navigation }) => {
                 placeholder="0"
                 keyboardType="numeric"
             />
-            <Button buttonColor="pink" textColor="black" mode="contained" onPress={handleUpdateService}>Update</Button>
+            <Button buttonColor="#33CCFF" textColor="black" mode="contained" onPress={handleUpdatePlace}>Update</Button>
         </View>
     );
 }
 
-export default ServiceUpdate;
+export default PlaceUpdate;

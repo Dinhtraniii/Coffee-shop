@@ -1,5 +1,5 @@
 import { createStackNavigator } from "@react-navigation/stack";
-import ServicesCustomer from '../screens/ServicesCustomer';
+import PlacesCustomer from '../screens/PlaceCustomer';
 import { logout,useMyContextProvider } from "../index";
 import Appointment from "../screens/Appointment";
 import { TouchableOpacity } from "react-native-gesture-handler";
@@ -8,7 +8,7 @@ import { useEffect } from "react"
 
 const Stack = createStackNavigator();
 
-const RouterServiceCustomer = ({ navigation }) => {
+const RouterPlaceCustomer = ({ navigation }) => {
     const [controller,dispatch] = useMyContextProvider();
     const { userLogin } = controller;
     useEffect(()=>{
@@ -22,7 +22,7 @@ const RouterServiceCustomer = ({ navigation }) => {
 
     return (
         <Stack.Navigator
-            initialRouteName="ServicesCustomer"
+            initialRouteName="PlacesCustomer"
             screenOptions={{
                 headerTitleAlign: "left",
                 headerStyle: {
@@ -35,10 +35,10 @@ const RouterServiceCustomer = ({ navigation }) => {
                   ),
             }}
         >
-            <Stack.Screen options={{headerLeft: null, title: (userLogin != null) && (userLogin.fullName)}} name="ServicesCustomer" component={ServicesCustomer} />
+            <Stack.Screen options={{headerLeft: null, title: (userLogin != null) && (userLogin.fullName)}} name="PlacesCustomer" component={PlacesCustomer} />
             <Stack.Screen name="Appointment" component={Appointment} />
         </Stack.Navigator>
     )
 }
 
-export default RouterServiceCustomer;
+export default RouterPlaceCustomer;

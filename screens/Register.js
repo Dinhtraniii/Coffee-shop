@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Image, View } from 'react-native';
+import { Image, View,ScrollView } from 'react-native';
 import { TextInput, Button, Text, HelperText } from 'react-native-paper';
 import { createAccount } from '../index';
 import { TouchableOpacity } from 'react-native-gesture-handler';
@@ -39,6 +39,7 @@ const Register = ({ navigation }) => {
   };
 
   return (
+    <ScrollView>
     <Background>
       <Logo />
     <View style={{ flex: 1,margin:10}}>
@@ -119,6 +120,7 @@ const Register = ({ navigation }) => {
       </View>
     </View>
     </Background>
+    </ScrollView>
   );
 };
 
