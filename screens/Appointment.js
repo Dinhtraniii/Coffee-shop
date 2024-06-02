@@ -26,11 +26,53 @@ const Appointment = ({ navigation, route }) => {
             Alert.alert('Error', 'Please select a payment method');
             return;
         }
-        
-        // Tiến hành kiểm tra và xác nhận đặt bàn
-        confirmAppointment();
+    
+        // Kiểm tra xem thời gian đặt có bị trùng không
+        APPOINTMENTS.where('datetime', '==', datetime)
+            .get()
+            .then(querySnapshot => {
+                if (!querySnapshot.empty) {
+                    Alert.alert('Error', 'Appointment time is already booked');
+                } else {
+                    // Kiểm tra khoảng cách giữa thời gian đặt và thời gian hiện có
+                    const fifteenMinutes = 15 * 60 * 1000; // 15 phút tính bằng mili giây
+                    const queryTime = datetime.getTime();
+    
+                    APPOINTMENTS.where('datetime', '>=', new Date(queryTime - fifteenMinutes))
+                        .where('datetime', '<=', new Date(queryTime + fifteenMinutes))
+                        .get()
+                        .then(querySnapshot => {
+                            if (!querySnapshot.empty) {
+                                Alert.alert('Error', 'Please choose a time slot at least 15 minutes apart');
+                            } else {
+                                // Thêm bản ghi mới vào cơ sở dữ liệu
+                                APPOINTMENTS.add({
+                                    title: Place.title,
+                                    email: userLogin.email,
+                                    PlaceId: Place.id,
+                                    datetime,
+                                    paymentMethod: selectedPaymentMethod,
+                                    state: "new"
+                                }).then(response => {
+                                    APPOINTMENTS.doc(response.id).update({ id: response.id });
+                                    // navigation.navigate("AppointmentCustomer");
+                                }).catch(error => {
+                                    console.error("Error adding appointment:", error);
+                                    Alert.alert('Error', 'Failed to add appointment');
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Error querying appointments:", error);
+                            Alert.alert('Error', 'Failed to check appointment time');
+                        });
+                }
+            })
+            .catch(error => {
+                console.error("Error querying appointments:", error);
+                Alert.alert('Error', 'Failed to check appointment time');
+            });
     };
-
     const confirmAppointment = () => {
         // Thêm bản ghi mới vào cơ sở dữ liệu
         APPOINTMENTS.add({
